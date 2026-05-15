@@ -188,37 +188,37 @@ project-01-dual-cloudwatch-alarms/
 
 ## Confirmation de l’abonnement email
 
-![Email Confirmed](screenshots/email-confirmed.png)
+![Email Confirmed](screenshots/email-subscription-confirmed.png)
 
 ---
 
 ## Fonction Lambda créée
 
-![Lambda Function](screenshots/lambda-created.png)
+![Lambda Function](screenshots/lambda-function-created.png)
 
 ---
 
 ## Abonnements SNS
 
-![SNS Subscriptions](screenshots/two-subscriptions.png)
+![SNS Subscriptions](screenshots/sns-lambda-subscription.png)
 
 ---
 
 ## Instance EC2 en cours d’exécution
 
-![EC2 Running](screenshots/ec2-running.png)
+![EC2 Running](screenshots/ec2-instance-running.png)
 
 ---
 
 ## Alarme Warning créée
 
-![Warning Alarm](screenshots/warning-alarm-created.png)
+![Warning Alarm](screenshots/cloudwatch-warning-alarm.png)
 
 ---
 
 ## Alarme Critique créée
 
-![Critical Alarm](screenshots/critical-alarm-created.png)
+![Critical Alarm](screenshots/cloudwatch-critical-alarm.png)
 
 ---
 
@@ -230,7 +230,7 @@ project-01-dual-cloudwatch-alarms/
 
 ## Instance EC2 arrêtée automatiquement
 
-![EC2 Stopped](screenshots/ec2-stopped.png)
+![EC2 Stopped](screenshots/ec2-instance-stopped.png)
 
 ---
 
