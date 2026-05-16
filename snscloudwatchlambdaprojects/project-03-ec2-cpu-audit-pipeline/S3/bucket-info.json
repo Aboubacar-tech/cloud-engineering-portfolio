@@ -1,0 +1,46 @@
+{
+  "event_type": "CPU_ALARM",
+  "alarm_name": "pipeline-cpu-alarm",
+  "alarm_state": "ALARM",
+  "instance_id": "i-0de8c1bf0bed0362c",
+  "action_taken": "ec2_tagged",
+  "timestamp": "2026-05-16T18:41:27.146972",
+  "raw_message": {
+    "AlarmName": "pipeline-cpu-alarm",
+    "AlarmDescription": null,
+    "AWSAccountId": "291483629763",
+    "AlarmConfigurationUpdatedTimestamp": "2026-05-16T18:38:00.776+0000",
+    "NewStateValue": "ALARM",
+    "NewStateReason": "Threshold Crossed: 1 out of the last 1 datapoints [84.36666666666666 (16/05/26 18:36:00)] was greater than or equal to the threshold (75.0) (minimum 1 datapoint for OK -> ALARM transition).",
+    "StateChangeTime": "2026-05-16T18:41:26.278+0000",
+    "Region": "EU (Stockholm)",
+    "AlarmArn": "arn:aws:cloudwatch:eu-north-1:291483629763:alarm:pipeline-cpu-alarm",
+    "OldStateValue": "OK",
+    "ActionExecutedAfterMuteWindow": false,
+    "OKActions": [],
+    "AlarmActions": [
+      "arn:aws:sns:eu-north-1:291483629763:cpu-pipeline-alerts"
+    ],
+    "InsufficientDataActions": [],
+    "Trigger": {
+      "MetricName": "CPUUtilization",
+      "Namespace": "AWS/EC2",
+      "StatisticType": "Statistic",
+      "Statistic": "AVERAGE",
+      "Unit": null,
+      "Dimensions": [
+        {
+          "value": "i-0de8c1bf0bed0362c",
+          "name": "InstanceId"
+        }
+      ],
+      "Period": 300,
+      "EvaluationPeriods": 1,
+      "DatapointsToAlarm": 1,
+      "ComparisonOperator": "GreaterThanOrEqualToThreshold",
+      "Threshold": 75.0,
+      "TreatMissingData": "missing",
+      "EvaluateLowSampleCountPercentile": ""
+    }
+  }
+}
