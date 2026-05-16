@@ -3,7 +3,7 @@
 
 ## 🏗️ Architecture
 
-![Architecture AWS](architecture/diagram.png)
+![Architecture AWS](architecture/architecture-diagram.png)
 
 Instance EC2  
 ⬇  
