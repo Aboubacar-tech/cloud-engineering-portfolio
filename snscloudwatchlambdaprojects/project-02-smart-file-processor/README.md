@@ -1,7 +1,3 @@
-Parfait, je vois exactement le style que tu veux 👍
-Je t’ai donc réécrit ton **Projet 02 dans le même format professionnel, structuré et “recruteur-ready”** que ton Projet 01.
-
----
 
 # 🚀 Projet 02 — Smart File Processor (AWS Serverless)
 
@@ -271,14 +267,3 @@ Mise en place réussie d’un système AWS capable de :
 ## Aboubacar Camara
 
 Futur AWS Cloud & DevOps Engineer
-
-GitHub :
-[https://github.com/Aboubacar-tech](https://github.com/Aboubacar-tech)
-
----
-
-Si tu veux, prochaine étape je peux te faire :
-
-🔥 une version **ENGLISH parfaite pour recruteurs internationaux**
-📊 ou transformer tes 2 projets en **portfolio GitHub complet (homepage + design)**
-💼 ou même préparer ton **CV DevOps basé sur ces projets (niveau entretien AWS)**
