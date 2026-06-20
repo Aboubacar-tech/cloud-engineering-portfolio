@@ -26,7 +26,7 @@ The system is built using the following AWS services:
 📸 Architecture Diagram:
 
 ```
-architecture/architecture-diagram.png
+architecture/Image ChatGPT 20 juin 2026, 00_04_25.png
 ```
 
 ---
