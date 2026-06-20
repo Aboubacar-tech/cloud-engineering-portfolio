@@ -1,0 +1,33 @@
+{
+  "Version": "2012-10-17",
+  "Id": "__default_policy_ID",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Principal": {
+        "Service": "sns.amazonaws.com"
+      },
+      "Action": "sqs:SendMessage",
+      "Resource": "arn:aws:sqs:eu-west-1:291483629763:order-processing-queue",
+      "Condition": {
+        "ArnEquals": {
+          "aws:SourceArn": "arn:aws:sns:eu-west-1:291483629763:order-events"
+        }
+      }
+    },
+    {
+      "Sid": "topic-subscription-arn:aws:sns:eu-west-1:291483629763:order-events",
+      "Effect": "Allow",
+      "Principal": {
+        "Service": "sns.amazonaws.com"
+      },
+      "Action": "SQS:SendMessage",
+      "Resource": "arn:aws:sqs:eu-west-1:291483629763:order-processing-queue",
+      "Condition": {
+        "ArnLike": {
+          "aws:SourceArn": "arn:aws:sns:eu-west-1:291483629763:order-events"
+        }
+      }
+    }
+  ]
+}

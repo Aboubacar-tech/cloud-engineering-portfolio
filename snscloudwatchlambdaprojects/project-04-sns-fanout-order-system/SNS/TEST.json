@@ -1,0 +1,10 @@
+{
+  "order_id": "ORD-20241215-001",
+  "customer": "Priya Sharma",
+  "items": [
+    "AWS T-Shirt",
+    "Cloud Notebook"
+  ],
+  "total": 45.99,
+  "currency": "USD"
+}
