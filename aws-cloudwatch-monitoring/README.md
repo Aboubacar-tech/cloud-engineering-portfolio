@@ -23,13 +23,8 @@ The system is built using the following AWS services:
 * Amazon API Gateway
 * CloudWatch Log Insights
 
-📸 Architecture Diagram:
-
-```
-architecture/Diagram.png
-```
-
----
+## 🏗️ Architecture du système
+  <img src="architecture/diagram.png" alt="Architecture AWS CloudWatch" width="900"/>
 
 ## 🔄 System Workflow
 
