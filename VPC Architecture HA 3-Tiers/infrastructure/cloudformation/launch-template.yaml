@@ -1,0 +1,200 @@
+AWSTemplateFormatVersion: "2010-09-09"
+
+Description: >
+  EC2 Launch Template with Apache Web Server,
+  SSM Managed Role and Application Deployment
+
+
+Parameters:
+
+  VpcId:
+
+    Type: AWS::EC2::VPC::Id
+
+    Description: Existing VPC ID
+
+  AppSecurityGroupId:
+
+    Type: AWS::EC2::SecurityGroup::Id
+
+    Description: Existing SG-AppServers
+
+  InstanceType:
+
+    Type: String
+
+    Default: t2.micro
+
+    AllowedValues:
+
+      - t2.micro
+      - t3.micro
+      - t3.small
+
+  KeyName:
+
+    Type: AWS::EC2::KeyPair::KeyName
+
+    Description: SSH Key Pair
+
+  AMIId:
+
+    Type: AWS::EC2::Image::Id
+
+    Default: ami-0c02fb55956c7d316
+
+    Description: Amazon Linux AMI
+
+# ===================================
+# IAM ROLE FOR SSM
+# ===================================
+
+Resources:
+
+  EC2SSMRole:
+
+    Type: AWS::IAM::Role
+
+    Properties:
+
+      RoleName:
+
+        EC2-SSM-Managed-Role
+
+      AssumeRolePolicyDocument:
+
+        Version: "2012-10-17"
+
+        Statement:
+
+          - Effect: Allow
+
+            Principal:
+
+              Service:
+
+                - ec2.amazonaws.com
+
+            Action:
+
+              - sts:AssumeRole
+
+      ManagedPolicyArns:
+
+        - arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore
+
+# ===================================
+# INSTANCE PROFILE
+# ===================================
+
+  EC2InstanceProfile:
+
+    Type: AWS::IAM::InstanceProfile
+
+    Properties:
+
+      InstanceProfileName:
+
+        EC2-SSM-Instance-Profile
+
+      Roles:
+
+        - !Ref EC2SSMRole
+
+# ===================================
+# LAUNCH TEMPLATE
+# ===================================
+
+  ApplicationLaunchTemplate:
+
+    Type: AWS::EC2::LaunchTemplate
+
+
+    Properties:
+
+      LaunchTemplateName:
+
+        production-app-launch-template
+
+      LaunchTemplateData:
+
+        ImageId:
+
+          !Ref AMIId
+
+
+        InstanceType:
+
+          !Ref InstanceType
+
+        KeyName:
+
+          !Ref KeyName
+
+        SecurityGroupIds:
+
+          - !Ref AppSecurityGroupId
+
+        IamInstanceProfile:
+
+          Name:
+
+            !Ref EC2InstanceProfile
+
+        UserData:
+
+          Fn::Base64: |
+
+            #!/bin/bash
+
+            yum update -y
+
+            # Installation Apache + Git
+
+            yum install httpd git -y
+
+            # Démarrage Apache
+
+            systemctl start httpd
+
+            systemctl enable httpd
+
+            # Déploiement application
+
+            cd /var/www/html
+
+            rm -rf *
+
+            git clone https://github.com/Aboubacar-tech/portfolio.git .
+
+            # Permissions
+
+            chown -R apache:apache /var/www/html
+
+            systemctl restart httpd
+
+# ===================================
+# OUTPUTS
+# ===================================
+
+Outputs:
+
+  LaunchTemplateId:
+
+    Description: Launch Template ID
+
+    Value:
+
+      Ref: ApplicationLaunchTemplate
+
+    Export:
+
+      Name: Production-LaunchTemplate-ID
+
+  LaunchTemplateVersion:
+
+    Description: Latest Version
+
+    Value:
+
+      !GetAtt ApplicationLaunchTemplate.LatestVersionNumber

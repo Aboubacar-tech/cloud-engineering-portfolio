@@ -1,0 +1,188 @@
+AWSTemplateFormatVersion: "2010-09-09"
+
+Description: >
+  Security Groups for 3-Tier AWS Architecture
+  ALB -> Application -> Database
+  Least Privilege Security Model
+
+Resources:
+
+
+# =====================================
+# ALB SECURITY GROUP
+# =====================================
+  SGALB:
+
+    Type: AWS::EC2::SecurityGroup
+
+    Properties:
+
+      GroupName: SG-ALB
+
+      GroupDescription: Allow HTTP HTTPS from Internet
+
+      VpcId:
+        
+          vpc-02c886b3098a2a252
+
+      SecurityGroupIngress:
+
+        - IpProtocol: tcp
+
+          FromPort: 80
+
+          ToPort: 80
+
+          CidrIp: 0.0.0.0/0
+
+        - IpProtocol: tcp
+
+          FromPort: 443
+
+          ToPort: 443
+
+          CidrIp: 0.0.0.0/0
+
+      SecurityGroupEgress:
+
+
+        - IpProtocol: -1
+
+          CidrIp: 0.0.0.0/0
+
+      Tags:
+
+        - Key: Name
+
+          Value: SG-ALB
+
+# =====================================
+# APPLICATION SERVERS SECURITY GROUP
+# =====================================
+
+  SGAppServers:
+
+    Type: AWS::EC2::SecurityGroup
+
+    Properties:
+
+      GroupName: SG-AppServers
+
+      GroupDescription: Allow HTTP only from ALB
+
+      VpcId:
+
+          vpc-02c886b3098a2a252
+
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+
+          FromPort: 80
+
+          ToPort: 80
+
+          SourceSecurityGroupId:
+
+            Ref: SGALB
+
+      SecurityGroupEgress:
+
+        - IpProtocol: -1
+
+          CidrIp: 0.0.0.0/0
+
+      Tags:
+
+        - Key: Name
+
+          Value: SG-AppServers
+
+# =====================================
+# DATABASE SECURITY GROUP
+# =====================================
+  SGDB:
+
+    Type: AWS::EC2::SecurityGroup
+
+    Properties:
+
+      GroupName: SG-DB
+
+      GroupDescription: Allow MySQL only from Application Servers
+
+      VpcId:
+
+          vpc-02c886b3098a2a252
+
+      SecurityGroupIngress:
+
+        - IpProtocol: tcp
+
+          FromPort: 3306
+
+          ToPort: 3306
+
+
+          SourceSecurityGroupId:
+
+            Ref: SGAppServers
+
+      SecurityGroupEgress:
+
+
+        - IpProtocol: -1
+
+          CidrIp: 0.0.0.0/0
+
+      Tags:
+
+
+        - Key: Name
+
+          Value: SG-DB
+
+
+
+# =====================================
+# OUTPUTS
+# =====================================
+
+
+Outputs:
+
+  ALBSecurityGroupID:
+
+    Description: ALB Security Group ID
+
+    Value:
+
+      Ref: SGALB
+
+    Export:
+
+      Name: SG-ALB-ID
+
+  AppSecurityGroupID:
+
+
+    Description: Application Security Group ID
+
+    Value:
+
+      Ref: SGAppServers
+
+    Export:
+
+      Name: SG-AppServers-ID
+
+  DBSecurityGroupID:
+
+    Description: Database Security Group ID
+
+    Value:
+
+      Ref: SGDB
+
+    Export:
+
+      Name: SG-DB-ID

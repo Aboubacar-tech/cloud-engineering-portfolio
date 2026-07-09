@@ -1,0 +1,504 @@
+AWSTemplateFormatVersion: "2010-09-09"
+
+Description: >
+  Production-ready AWS VPC 3-Tier Architecture
+  Public, Application Private and Database Private Subnets
+  across two Availability Zones.
+
+# =========================
+# PARAMETERS
+# =========================
+
+Parameters:
+
+  VpcCIDR:
+    Type: String
+    Default: 10.0.0.0/16
+
+  PublicSubnetACIDR:
+    Type: String
+    Default: 10.0.1.0/24
+
+  PublicSubnetBCIDR:
+    Type: String
+    Default: 10.0.2.0/24
+
+  AppSubnetACIDR:
+    Type: String
+    Default: 10.0.10.0/24
+
+  AppSubnetBCIDR:
+    Type: String
+    Default: 10.0.11.0/24
+
+  DBSubnetACIDR:
+    Type: String
+    Default: 10.0.20.0/24
+
+  DBSubnetBCIDR:
+    Type: String
+    Default: 10.0.21.0/24
+
+
+# =========================
+# RESOURCES
+# =========================
+
+Resources:
+
+
+# =========================
+# VPC
+# =========================
+
+  ProductionVPC:
+
+    Type: AWS::EC2::VPC
+
+    Properties:
+
+      CidrBlock: !Ref VpcCIDR
+
+      EnableDnsSupport: true
+
+      EnableDnsHostnames: true
+
+      Tags:
+        - Key: Name
+          Value: vpc-production
+
+
+
+# =========================
+# INTERNET GATEWAY
+# =========================
+
+  InternetGateway:
+
+    Type: AWS::EC2::InternetGateway
+
+    Properties:
+
+      Tags:
+        - Key: Name
+          Value: igw-main
+
+
+
+  AttachInternetGateway:
+
+    Type: AWS::EC2::VPCGatewayAttachment
+
+    Properties:
+
+      VpcId: !Ref ProductionVPC
+
+      InternetGatewayId: !Ref InternetGateway
+
+
+
+# =========================
+# PUBLIC SUBNETS
+# =========================
+
+
+  PublicSubnetA:
+
+    Type: AWS::EC2::Subnet
+
+    Properties:
+
+      VpcId: !Ref ProductionVPC
+
+      AvailabilityZone: us-east-1a
+
+      CidrBlock: !Ref PublicSubnetACIDR
+
+      MapPublicIpOnLaunch: true
+
+      Tags:
+
+        - Key: Name
+          Value: subnet-public-az-a
+
+
+
+  PublicSubnetB:
+
+    Type: AWS::EC2::Subnet
+
+    Properties:
+
+      VpcId: !Ref ProductionVPC
+
+      AvailabilityZone: us-east-1b
+
+      CidrBlock: !Ref PublicSubnetBCIDR
+
+      MapPublicIpOnLaunch: true
+
+      Tags:
+
+        - Key: Name
+          Value: subnet-public-az-b
+
+
+
+# =========================
+# APP PRIVATE SUBNETS
+# =========================
+
+
+  AppSubnetA:
+
+    Type: AWS::EC2::Subnet
+
+    Properties:
+
+      VpcId: !Ref ProductionVPC
+
+      AvailabilityZone: us-east-1a
+
+      CidrBlock: !Ref AppSubnetACIDR
+
+      Tags:
+
+        - Key: Name
+          Value: subnet-app-private-az-a
+
+
+
+  AppSubnetB:
+
+    Type: AWS::EC2::Subnet
+
+    Properties:
+
+      VpcId: !Ref ProductionVPC
+
+      AvailabilityZone: us-east-1b
+
+      CidrBlock: !Ref AppSubnetBCIDR
+
+      Tags:
+
+        - Key: Name
+          Value: subnet-app-private-az-b
+
+
+
+# =========================
+# DATABASE SUBNETS
+# =========================
+
+
+  DBSubnetA:
+
+    Type: AWS::EC2::Subnet
+
+    Properties:
+
+      VpcId: !Ref ProductionVPC
+
+      AvailabilityZone: us-east-1a
+
+      CidrBlock: !Ref DBSubnetACIDR
+
+      Tags:
+
+        - Key: Name
+          Value: subnet-db-private-az-a
+
+
+
+  DBSubnetB:
+
+    Type: AWS::EC2::Subnet
+
+    Properties:
+
+      VpcId: !Ref ProductionVPC
+
+      AvailabilityZone: us-east-1b
+
+      CidrBlock: !Ref DBSubnetBCIDR
+
+      Tags:
+
+        - Key: Name
+          Value: subnet-db-private-az-b
+
+
+
+# =========================
+# NAT GATEWAYS
+# =========================
+
+
+  NatEIPA:
+
+    Type: AWS::EC2::EIP
+
+    DependsOn: AttachInternetGateway
+
+    Properties:
+
+      Domain: vpc
+
+
+
+  NatEIPB:
+
+    Type: AWS::EC2::EIP
+
+    DependsOn: AttachInternetGateway
+
+    Properties:
+
+      Domain: vpc
+
+
+
+  NatGatewayA:
+
+    Type: AWS::EC2::NatGateway
+
+    Properties:
+
+      AllocationId: !GetAtt NatEIPA.AllocationId
+
+      SubnetId: !Ref PublicSubnetA
+
+
+
+  NatGatewayB:
+
+    Type: AWS::EC2::NatGateway
+
+    Properties:
+
+      AllocationId: !GetAtt NatEIPB.AllocationId
+
+      SubnetId: !Ref PublicSubnetB
+
+
+
+# =========================
+# PUBLIC ROUTE TABLE
+# =========================
+
+
+  PublicRouteTable:
+
+    Type: AWS::EC2::RouteTable
+
+    Properties:
+
+      VpcId: !Ref ProductionVPC
+
+
+  PublicRoute:
+
+    Type: AWS::EC2::Route
+
+    DependsOn: AttachInternetGateway
+
+    Properties:
+
+      RouteTableId: !Ref PublicRouteTable
+
+      DestinationCidrBlock: 0.0.0.0/0
+
+      GatewayId: !Ref InternetGateway
+
+
+
+  PublicSubnetARouteAssociation:
+
+    Type: AWS::EC2::SubnetRouteTableAssociation
+
+    Properties:
+
+      SubnetId: !Ref PublicSubnetA
+
+      RouteTableId: !Ref PublicRouteTable
+
+
+
+  PublicSubnetBRouteAssociation:
+
+    Type: AWS::EC2::SubnetRouteTableAssociation
+
+    Properties:
+
+      SubnetId: !Ref PublicSubnetB
+
+      RouteTableId: !Ref PublicRouteTable
+
+
+
+# =========================
+# APP ROUTE TABLES
+# =========================
+
+
+  AppRouteTableA:
+
+    Type: AWS::EC2::RouteTable
+
+    Properties:
+
+      VpcId: !Ref ProductionVPC
+
+
+
+  AppRouteA:
+
+    Type: AWS::EC2::Route
+
+    Properties:
+
+      RouteTableId: !Ref AppRouteTableA
+
+      DestinationCidrBlock: 0.0.0.0/0
+
+      NatGatewayId: !Ref NatGatewayA
+
+
+
+  AppSubnetARouteAssociation:
+
+    Type: AWS::EC2::SubnetRouteTableAssociation
+
+    Properties:
+
+      SubnetId: !Ref AppSubnetA
+
+      RouteTableId: !Ref AppRouteTableA
+
+
+
+
+  AppRouteTableB:
+
+    Type: AWS::EC2::RouteTable
+
+    Properties:
+
+      VpcId: !Ref ProductionVPC
+
+
+
+  AppRouteB:
+
+    Type: AWS::EC2::Route
+
+    Properties:
+
+      RouteTableId: !Ref AppRouteTableB
+
+      DestinationCidrBlock: 0.0.0.0/0
+
+      NatGatewayId: !Ref NatGatewayB
+
+
+
+  AppSubnetBRouteAssociation:
+
+    Type: AWS::EC2::SubnetRouteTableAssociation
+
+    Properties:
+
+      SubnetId: !Ref AppSubnetB
+
+      RouteTableId: !Ref AppRouteTableB
+
+
+
+# =========================
+# DATABASE ISOLATION
+# =========================
+
+
+  DBRouteTable:
+
+    Type: AWS::EC2::RouteTable
+
+    Properties:
+
+      VpcId: !Ref ProductionVPC
+
+
+
+  DBSubnetARouteAssociation:
+
+    Type: AWS::EC2::SubnetRouteTableAssociation
+
+    Properties:
+
+      SubnetId: !Ref DBSubnetA
+
+      RouteTableId: !Ref DBRouteTable
+
+
+
+  DBSubnetBRouteAssociation:
+
+    Type: AWS::EC2::SubnetRouteTableAssociation
+
+    Properties:
+
+      SubnetId: !Ref DBSubnetB
+
+      RouteTableId: !Ref DBRouteTable
+
+
+
+# =========================
+# OUTPUTS
+# =========================
+
+Outputs:
+
+
+  VPCID:
+
+    Description: VPC ID
+
+    Value: !Ref ProductionVPC
+
+
+
+  PublicSubnetAID:
+
+    Value: !Ref PublicSubnetA
+
+
+
+  PublicSubnetBID:
+
+    Value: !Ref PublicSubnetB
+
+
+
+  AppSubnetAID:
+
+    Value: !Ref AppSubnetA
+
+
+
+  AppSubnetBID:
+
+    Value: !Ref AppSubnetB
+
+
+
+  DBSubnetAID:
+
+    Value: !Ref DBSubnetA
+
+
+
+  DBSubnetBID:
+
+    Value: !Ref DBSubnetB

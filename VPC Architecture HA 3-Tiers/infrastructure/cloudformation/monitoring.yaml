@@ -1,0 +1,468 @@
+AWSTemplateFormatVersion: "2010-09-09"
+
+Description: >
+  CloudWatch Monitoring Alarms
+  for EC2 and Application Load Balancer
+
+
+# ==============================
+# PARAMETERS
+# ==============================
+
+Parameters:
+
+
+  InstanceId:
+
+    Type: AWS::EC2::Instance::Id
+
+    Description: EC2 Instance ID to monitor
+
+
+
+  LoadBalancerFullName:
+
+    Type: String
+
+    Description: ALB Full Name for CloudWatch
+
+
+
+  TargetGroupFullName:
+
+    Type: String
+
+    Description: Target Group Full Name for CloudWatch
+
+
+
+  SNSTopicARN:
+
+    Type: String
+
+    Default: ""
+
+    Description: Optional SNS Topic ARN
+
+
+
+
+
+# ==============================
+# CONDITIONS
+# ==============================
+
+
+Conditions:
+
+
+  HasSNS:
+
+    !Not
+
+      - !Equals
+
+        - !Ref SNSTopicARN
+
+        - ""
+
+
+
+
+# ==============================
+# RESOURCES
+# ==============================
+
+Resources:
+
+
+
+# ==============================
+# EC2 CPU ALARM
+# ==============================
+
+
+  EC2CPUAlarm:
+
+
+    Type: AWS::CloudWatch::Alarm
+
+
+    Properties:
+
+
+      AlarmName:
+
+        EC2-High-CPU-Utilization
+
+
+
+      AlarmDescription:
+
+        Trigger when CPU exceeds 80%
+
+
+
+      Namespace:
+
+        AWS/EC2
+
+
+
+      MetricName:
+
+        CPUUtilization
+
+
+
+      Statistic:
+
+        Average
+
+
+
+      Period:
+
+        300
+
+
+
+      EvaluationPeriods:
+
+        2
+
+
+
+      Threshold:
+
+        80
+
+
+
+      ComparisonOperator:
+
+        GreaterThanThreshold
+
+
+
+      Dimensions:
+
+
+        - Name:
+
+            InstanceId
+
+
+          Value:
+
+            !Ref InstanceId
+
+
+
+      AlarmActions:
+
+
+        - !If
+
+          - HasSNS
+
+          - !Ref SNSTopicARN
+
+          - !Ref AWS::NoValue
+
+
+
+
+
+# ==============================
+# EC2 STATUS CHECK ALARM
+# ==============================
+
+
+  EC2StatusCheckAlarm:
+
+
+    Type: AWS::CloudWatch::Alarm
+
+
+    Properties:
+
+
+      AlarmName:
+
+        EC2-StatusCheck-Failed
+
+
+
+      Namespace:
+
+        AWS/EC2
+
+
+
+      MetricName:
+
+        StatusCheckFailed
+
+
+
+      Statistic:
+
+        Maximum
+
+
+
+      Period:
+
+        60
+
+
+
+      EvaluationPeriods:
+
+        2
+
+
+
+      Threshold:
+
+        1
+
+
+
+      ComparisonOperator:
+
+        GreaterThanOrEqualToThreshold
+
+
+
+      Dimensions:
+
+
+        - Name:
+
+            InstanceId
+
+
+          Value:
+
+            !Ref InstanceId
+
+
+
+
+
+# ==============================
+# ALB REQUEST COUNT ALARM
+# ==============================
+
+
+  ALBRequestCountAlarm:
+
+
+    Type: AWS::CloudWatch::Alarm
+
+
+
+    Properties:
+
+
+      AlarmName:
+
+        ALB-Low-RequestCount
+
+
+
+      Namespace:
+
+        AWS/ApplicationELB
+
+
+
+      MetricName:
+
+        RequestCount
+
+
+
+      Statistic:
+
+        Sum
+
+
+
+      Period:
+
+        300
+
+
+
+      EvaluationPeriods:
+
+        1
+
+
+
+      Threshold:
+
+        10
+
+
+
+      ComparisonOperator:
+
+        LessThanThreshold
+
+
+
+      Dimensions:
+
+
+        - Name:
+
+            LoadBalancer
+
+
+          Value:
+
+            !Ref LoadBalancerFullName
+
+
+
+
+
+
+# ==============================
+# ALB RESPONSE TIME ALARM
+# ==============================
+
+
+  ALBResponseTimeAlarm:
+
+
+    Type: AWS::CloudWatch::Alarm
+
+
+
+    Properties:
+
+
+      AlarmName:
+
+        ALB-High-Response-Time
+
+
+
+      Namespace:
+
+        AWS/ApplicationELB
+
+
+
+      MetricName:
+
+        TargetResponseTime
+
+
+
+      Statistic:
+
+        Average
+
+
+
+      Period:
+
+        300
+
+
+
+      EvaluationPeriods:
+
+        2
+
+
+
+      Threshold:
+
+        2
+
+
+
+      ComparisonOperator:
+
+        GreaterThanThreshold
+
+
+
+      Dimensions:
+
+
+        - Name:
+
+            LoadBalancer
+
+
+          Value:
+
+            !Ref LoadBalancerFullName
+
+
+        - Name:
+
+            TargetGroup
+
+
+          Value:
+
+            !Ref TargetGroupFullName
+
+
+
+
+
+# ==============================
+# OUTPUTS
+# ==============================
+
+
+Outputs:
+
+
+  CPUAlarm:
+
+    Description: EC2 CPU Alarm
+
+    Value:
+
+      !Ref EC2CPUAlarm
+
+
+
+  StatusAlarm:
+
+    Description: EC2 Status Check Alarm
+
+    Value:
+
+      !Ref EC2StatusCheckAlarm
+
+
+
+  ALBRequestAlarm:
+
+    Description: ALB Request Count Alarm
+
+    Value:
+
+      !Ref ALBRequestCountAlarm
+
+
+
+  ALBResponseAlarm:
+
+    Description: ALB Response Time Alarm
+
+    Value:
+
+      !Ref ALBResponseTimeAlarm

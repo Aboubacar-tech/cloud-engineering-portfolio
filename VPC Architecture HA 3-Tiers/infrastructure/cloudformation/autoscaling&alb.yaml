@@ -1,0 +1,246 @@
+AWSTemplateFormatVersion: "2010-09-09"
+
+Description: >
+  Production ALB and Auto Scaling Group
+  using existing Launch Template
+
+
+# ==============================
+# PARAMETERS
+# ==============================
+
+Parameters:
+
+  VPCId:
+    Type: AWS::EC2::VPC::Id
+    Description: Existing Production VPC
+
+
+  PublicSubnetA:
+    Type: AWS::EC2::Subnet::Id
+    Description: Public subnet AZ-A
+
+
+  PublicSubnetB:
+    Type: AWS::EC2::Subnet::Id
+    Description: Public subnet AZ-B
+
+
+  AppSubnetA:
+    Type: AWS::EC2::Subnet::Id
+    Description: Private App subnet AZ-A
+
+
+  AppSubnetB:
+    Type: AWS::EC2::Subnet::Id
+    Description: Private App subnet AZ-B
+
+
+  ALBSecurityGroup:
+    Type: AWS::EC2::SecurityGroup::Id
+    Description: SG-ALB
+
+
+  LaunchTemplateId:
+    Type: String
+    Description: Existing Launch Template ID
+
+
+  LaunchTemplateVersion:
+    Type: String
+    Default: "1"
+    Description: Launch Template Version
+
+
+
+# ==============================
+# RESOURCES
+# ==============================
+
+Resources:
+
+
+# ==============================
+# TARGET GROUP
+# ==============================
+
+  ApplicationTargetGroup:
+
+    Type: AWS::ElasticLoadBalancingV2::TargetGroup
+
+    Properties:
+
+      Name: production-app-target-group
+
+      Port: 80
+
+      Protocol: HTTP
+
+      VpcId: !Ref VPCId
+
+      HealthCheckEnabled: true
+
+      HealthCheckPath: /
+
+      HealthCheckProtocol: HTTP
+
+      Matcher:
+
+        HttpCode: 200-399
+
+      TargetType: instance
+
+
+
+# ==============================
+# APPLICATION LOAD BALANCER
+# ==============================
+
+  ProductionALB:
+
+    Type: AWS::ElasticLoadBalancingV2::LoadBalancer
+
+    Properties:
+
+      Name: production-alb
+
+      Scheme: internet-facing
+
+      Type: application
+
+      SecurityGroups:
+
+        - !Ref ALBSecurityGroup
+
+      Subnets:
+
+        - !Ref PublicSubnetA
+
+        - !Ref PublicSubnetB
+
+
+      Tags:
+
+        - Key: Name
+          Value: production-alb
+
+
+
+# ==============================
+# ALB LISTENER HTTP 80
+# ==============================
+
+  ALBListener:
+
+    Type: AWS::ElasticLoadBalancingV2::Listener
+
+    Properties:
+
+      LoadBalancerArn: !Ref ProductionALB
+
+      Port: 80
+
+      Protocol: HTTP
+
+      DefaultActions:
+
+        - Type: forward
+
+          TargetGroupArn: !Ref ApplicationTargetGroup
+
+
+
+# ==============================
+# AUTO SCALING GROUP
+# ==============================
+
+  ApplicationAutoScalingGroup:
+
+    Type: AWS::AutoScaling::AutoScalingGroup
+
+    Properties:
+
+
+      AutoScalingGroupName: production-app-asg
+
+
+      VPCZoneIdentifier:
+
+        - !Ref AppSubnetA
+
+        - !Ref AppSubnetB
+
+
+      LaunchTemplate:
+
+
+        LaunchTemplateId: !Ref LaunchTemplateId
+
+
+        Version: !Ref LaunchTemplateVersion
+
+
+
+      TargetGroupARNs:
+
+
+        - !Ref ApplicationTargetGroup
+
+
+
+      MinSize: 2
+
+
+      MaxSize: 4
+
+
+      DesiredCapacity: 2
+
+
+
+      HealthCheckType: ELB
+
+
+      HealthCheckGracePeriod: 300
+
+
+
+      Tags:
+
+
+        - Key: Name
+
+          Value: production-app-server
+
+          PropagateAtLaunch: true
+
+
+
+# ==============================
+# OUTPUTS
+# ==============================
+
+Outputs:
+
+
+  ALBDNSName:
+
+    Description: DNS name of Application Load Balancer
+
+    Value: !GetAtt ProductionALB.DNSName
+
+
+
+  TargetGroupARN:
+
+    Description: Target Group ARN
+
+    Value: !Ref ApplicationTargetGroup
+
+
+
+  AutoScalingGroupName:
+
+    Description: Auto Scaling Group Name
+
+    Value: !Ref ApplicationAutoScalingGroup
