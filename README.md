@@ -52,18 +52,7 @@ Chaque projet contient :
 
 ---
 
-# 📁 Exemple de structure d’un projet
 
-```text
-project-name/
-│
-├── README.md
-├── architecture/
-├── screenshots/
-├── lambda/
-├── scripts/
-└── docs/
-```
 
 ---
 
